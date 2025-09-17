@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id='c' width="800" height="600"></canvas>
+<script>
+const C = document.getElementById('c').getContext('2d');
+const W = C.canvas.width;
+const H = C.canvas.height;
+const epsilon = 2;
+
+
+const k = 1; // թեքությունը
+const b = 0; // հատում y առանցքի հետ
+
+const I = C.createImageData(W, H);
+drawFrame(I.data);
+C.putImageData(I, 0, 0);
+
+function drawFrame(D) {
+  let i = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const xCentered = x - W / 2;
+      const yCentered = y - H / 2;
+      const p = getPixel(xCentered, yCentered);
+      D[i++] = p.r * 255;
+      D[i++] = p.g * 255;
+      D[i++] = p.b * 255;
+      D[i++] = p.a * 255;
+    }
+  }
+}
+
+function getPixel(x, y) {
+  const cx = x/2;
+  const cy = -y/2;
+
+  const bg = backgroundPattern(cx, cy);
+  const graphLine = aLine(cx, cy, k, b, epsilon);
+  const graphLine1 = aLine(cx, cy, 2, 3, epsilon);
+  const graphLine2 = aLine(cx, cy, 0, 0, epsilon);
+  const graphLine3 = aLine(cy, cx, 0, 0, epsilon);
+  const grphCircle = aCircle(cx, cy, 50, 80)
+  const overlay1 = overlay(graphLine,graphLine1);
+  const overlay2 = overlay(overlay1,graphLine2);
+  const overlay3 = overlay(overlay2,graphLine3);
+  const overlay4 = overlay(overlay3,grphCircle)
+  return overlay(overlay4, bg);
+}
+
+
+function overlay(p1, p2) {
+  const m = 1 - (1 - p1.a) * (1 - p2.a);
+  if (m === 0) return { r: 0, g: 0, b: 0, a: 0 };
+  const a1 = p1.a / m;
+  const a2 = p2.a * (1 - a1);
+  const blend = (c1, c2) => c1 * a1 + c2 * a2;
+  return {
+    r: blend(p1.r, p2.r),
+    g: blend(p1.g, p2.g),
+    b: blend(p1.b, p2.b),
+    a: m
+  };
+}
+
+function backgroundPattern(x, y) {
+  return { r: 0, g: 0, b: 0, a: 1 };
+}
+
+function aLine(x, y, k, b, epsilon = 0.01) {
+  const yOnLine = k * x + b;
+  const onLine = Math.abs(y - yOnLine) < epsilon;
+  return { r: 1.0, g: 0, b: 0, a: onLine ? 1 : 0 };
+}
+
+function aCircle(x, y, radius, epsilon = 0.01) {
+  const distanceSquared = x * x + y * y;
+  const onCircle = Math.abs(distanceSquared - radius * radius) < epsilon;
+  return { r: 0.0, g: 0.0, b: 1.0, a: onCircle ? 1 : 0 };
+}
+
+
+
+</script>
+</body>
+</html>
+
