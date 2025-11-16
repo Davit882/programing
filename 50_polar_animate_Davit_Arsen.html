@@ -1,0 +1,50 @@
+<html lang="hy">
+<head>
+  <meta charset="utf-8">
+  <title>Գնդիկներ</title>
+  <style>
+    body { display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#fff;}
+    canvas {background:#000;border:1px solid #666;margin-bottom:12px;}
+  </style>
+</head>
+<body>
+  <canvas id="c" width="500" height="500"></canvas>
+  <label>Գագաթներ: <span id="lab">3</span>
+    <input id="rng" type="range" min="3" max="20" value="3">
+  </label>
+  <script>
+    const c=document.getElementById("c"),ctx=c.getContext("2d"),
+          rng=document.getElementById("rng"),lab=document.getElementById("lab"),
+          cx=c.width/2,cy=c.height/2;
+    let a=0,s=+rng.value;
+    rng.oninput=()=>{s=+rng.value;lab.textContent=s};
+    function poly(n,r,rot=0){
+      return [...Array(n)].map((_,i)=>({
+        x:cx+r*Math.cos(rot+i*2*Math.PI/n),
+        y:cy+r*Math.sin(rot+i*2*Math.PI/n)
+      }));
+    }
+    function point(v,t){
+      let i=Math.floor(t%v.length),n=(i+1)%v.length,f=t%1;
+      return {
+        x:v[i].x+(v[n].x-v[i].x)*f,
+        y:v[i].y+(v[n].y-v[i].y)*f
+      };
+    }
+    function animate(){
+      ctx.fillStyle="rgba(0,0,0,0.25)";
+      ctx.fillRect(0,0,c.width,c.height);
+      let v=poly(s,180,-Math.PI/2);
+      for(let i=0;i<s;i++){
+        let q=point(v,a*0.01+i*(v.length/s));
+        ctx.beginPath();ctx.arc(q.x,q.y,10,0,2*Math.PI);
+        ctx.fillStyle=`hsl(${(i*360/s+a)%360},80%,55%)`;
+        ctx.fill();
+      }
+      a++;requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
+
